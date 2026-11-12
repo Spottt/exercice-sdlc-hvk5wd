@@ -1,0 +1,59 @@
+# Vérifications lancées par Spottt à la réception d'un rendu : les tests, le formatage et l'analyse statique
+# de la pull request indiquée. Ce fichier est lu sur la branche principale du dépôt, pas dans la pull request.
+name: Correction
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Numéro de la pull request à vérifier
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests-api:
+    name: Tests de l'API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ inputs.pr }}/head
+      - name: cargo test
+        working-directory: api
+        run: cargo test
+
+  qualite-api:
+    name: Format et analyse statique de l'API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ inputs.pr }}/head
+      - name: cargo fmt --check
+        working-directory: api
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: api
+        run: cargo clippy --all-targets -- -D warnings
+
+  tests-front:
+    name: Tests du front
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ inputs.pr }}/head
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci
+        working-directory: web
+        run: npm ci
+      - name: npm test
+        working-directory: web
+        run: npm test
