@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Réservation de stands</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 44rem; padding: 0 1rem; color: #111; }
+      h1 { margin-bottom: 0; }
+      .muted { color: #666; }
+      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+      th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+      td.num { text-align: right; font-variant-numeric: tabular-nums; }
+      button { padding: 0.3rem 0.8rem; cursor: pointer; }
+      #exhibitor { padding: 0.4rem; width: 16rem; }
+      #message { min-height: 1.5rem; color: #b42318; }
+    </style>
+  </head>
+  <body>
+    <h1 id="show-name">Salon</h1>
+    <p class="muted" id="show-date"></p>
+    <label>Votre société : <input id="exhibitor" placeholder="Nom de l'exposant" /></label>
+    <p id="message" role="alert"></p>
+    <table>
+      <thead><tr><th>Stand</th><th>Surface</th><th>Prix</th><th>Acompte</th><th></th></tr></thead>
+      <tbody id="stands"></tbody>
+    </table>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
