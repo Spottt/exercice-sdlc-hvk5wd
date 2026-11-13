@@ -1,38 +1,73 @@
-# Vérifications lancées par Spottt à la réception d'un rendu : les tests, le formatage et l'analyse statique
-# de la pull request indiquée. Ce fichier est lu sur la branche principale du dépôt, pas dans la pull request.
+# Vérifications du rendu : les tests, le formatage et l'analyse statique de la pull request, lancés par Spottt.
+# Ce fichier est lu sur la branche principale du dépôt (pull_request_target), jamais dans la pull request :
+# le modifier dans votre rendu n'a aucun effet. Le résultat est publié en commentaire de la pull request.
 name: Correction
 
 on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       pr:
         description: Numéro de la pull request à vérifier
         required: true
 
-permissions:
-  contents: read
+permissions: {}
+
+concurrency:
+  group: correction-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
 
 jobs:
+  # Quelle version exacte du rendu vérifie-t-on ? (aucun code du candidat n'est exécuté ici)
+  cible:
+    name: Rendu à vérifier
+    if: github.repository != 'Spottt/exercice-sdlc'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      pr: ${{ steps.cible.outputs.pr }}
+      sha: ${{ steps.cible.outputs.sha }}
+    steps:
+      - id: cible
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || inputs.pr }}
+        run: |
+          case "$PR" in ''|*[!0-9]*) echo "numéro de pull request invalide" >&2; exit 1;; esac
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" -q .head.sha)" >> "$GITHUB_OUTPUT"
+
+  # Les trois jobs suivants exécutent le code du candidat : ils n'ont que le droit de lire le dépôt.
   tests-api:
     name: Tests de l'API
+    needs: cible
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ inputs.pr }}/head
+          ref: ${{ needs.cible.outputs.sha }}
+          persist-credentials: false
       - name: cargo test
         working-directory: api
         run: cargo test
 
   qualite-api:
     name: Format et analyse statique de l'API
+    needs: cible
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ inputs.pr }}/head
+          ref: ${{ needs.cible.outputs.sha }}
+          persist-credentials: false
       - name: cargo fmt --check
         working-directory: api
         run: cargo fmt --check
@@ -42,12 +77,16 @@ jobs:
 
   tests-front:
     name: Tests du front
+    needs: cible
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ inputs.pr }}/head
+          ref: ${{ needs.cible.outputs.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -57,3 +96,36 @@ jobs:
       - name: npm test
         working-directory: web
         run: npm test
+
+  # Publie le résultat. Ce job n'exécute aucun code du candidat : lui seul peut écrire le commentaire.
+  rapport:
+    name: Résultat
+    needs: [cible, tests-api, qualite-api, tests-front]
+    if: always() && needs.cible.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.cible.outputs.pr }}
+          SHA: ${{ needs.cible.outputs.sha }}
+          API: ${{ needs.tests-api.result }}
+          QUALITE: ${{ needs.qualite-api.result }}
+          FRONT: ${{ needs.tests-front.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mot() { case "$1" in success) echo "réussi";; failure) echo "échec";; *) echo "$1";; esac; }
+          {
+            echo "<!-- spottt-verifications {\"sha\":\"$SHA\",\"run\":\"$RUN_URL\",\"jobs\":{\"tests-api\":\"$API\",\"qualite-api\":\"$QUALITE\",\"tests-front\":\"$FRONT\"}} -->"
+            echo "**Vérifications automatiques** du commit \`${SHA:0:8}\`"
+            echo
+            echo "| Vérification | Résultat |"
+            echo "|---|---|"
+            echo "| Tests de l'API (\`cargo test\`) | $(mot "$API") |"
+            echo "| Format et analyse statique de l'API (\`cargo fmt --check\`, \`cargo clippy\`) | $(mot "$QUALITE") |"
+            echo "| Tests du front (\`npm test\`) | $(mot "$FRONT") |"
+            echo
+            echo "[Détail de l'exécution]($RUN_URL)"
+          } > corps.md
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@corps.md -q .html_url
