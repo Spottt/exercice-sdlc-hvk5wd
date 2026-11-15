@@ -34,3 +34,6 @@ test c4_le_changement_est_refuse_a_j_moins_6_et_la_reservation_reste_inchangee .
 test c3_le_changement_est_accepte_a_j_moins_7 ... FAILED
 test result: FAILED. 0 passed; 8 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 check-red OK : nouveaux tests rouges, anciens verts
+
+## 2026-11-15 17:16 · 04 Implémenter · itération 1/3
+make check : VERT

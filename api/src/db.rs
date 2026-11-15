@@ -1,10 +1,13 @@
 //! Accès à la base (SQLite, un seul fichier : rien à installer).
 
-use rusqlite::{params, Connection, ErrorCode};
+use rusqlite::{params, Connection, ErrorCode, OptionalExtension};
 use serde::Serialize;
 
 /// Acompte demandé à la réservation, en pourcentage du prix du stand.
 pub const DEPOSIT_PERCENT: i64 = 30;
+
+/// Nombre minimal de jours avant l'ouverture pour changer de stand (J-7 inclus).
+pub const CHANGE_DEADLINE_DAYS: i64 = 7;
 
 #[derive(Debug, Serialize)]
 pub struct Show {
@@ -33,6 +36,15 @@ pub struct Booking {
 
 #[derive(Debug, PartialEq)]
 pub enum BookingError {
+    UnknownStand,
+    AlreadyBooked,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ChangeError {
+    UnknownBooking,
+    NotOwner,
+    TooLate,
     UnknownStand,
     AlreadyBooked,
 }
@@ -159,6 +171,65 @@ pub fn book(
         })),
         Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == ErrorCode::ConstraintViolation => {
             Ok(Err(BookingError::AlreadyBooked))
+        }
+        Err(e) => Err(e),
+    }
+}
+
+/// Change le stand d'une réservation et recalcule l'acompte. `today` au format AAAA-MM-JJ ;
+/// `None` prend la date locale du serveur.
+pub fn change_stand(
+    conn: &Connection,
+    booking_id: i64,
+    stand_id: i64,
+    exhibitor: &str,
+    today: Option<&str>,
+) -> rusqlite::Result<Result<Booking, ChangeError>> {
+    let owner: Option<String> = conn
+        .query_row(
+            "SELECT exhibitor FROM bookings WHERE id = ?1",
+            [booking_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let Some(owner) = owner else {
+        return Ok(Err(ChangeError::UnknownBooking));
+    };
+    if owner != exhibitor {
+        return Ok(Err(ChangeError::NotOwner));
+    }
+    let days: i64 = conn.query_row(
+        "SELECT CAST(julianday(opens_on) - julianday(COALESCE(?1, date('now', 'localtime'))) AS INTEGER)
+         FROM show WHERE id = 1",
+        [today],
+        |r| r.get(0),
+    )?;
+    if days < CHANGE_DEADLINE_DAYS {
+        return Ok(Err(ChangeError::TooLate));
+    }
+    let price: Option<i64> = conn
+        .query_row(
+            "SELECT price_cents FROM stands WHERE id = ?1",
+            [stand_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let Some(price) = price else {
+        return Ok(Err(ChangeError::UnknownStand));
+    };
+    let deposit_cents = price * DEPOSIT_PERCENT / 100;
+    match conn.execute(
+        "UPDATE bookings SET stand_id = ?1, deposit_cents = ?2 WHERE id = ?3",
+        params![stand_id, deposit_cents, booking_id],
+    ) {
+        Ok(_) => Ok(Ok(Booking {
+            id: booking_id,
+            stand_id,
+            exhibitor: owner,
+            deposit_cents,
+        })),
+        Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == ErrorCode::ConstraintViolation => {
+            Ok(Err(ChangeError::AlreadyBooked))
         }
         Err(e) => Err(e),
     }

@@ -5,37 +5,53 @@ pub mod db;
 use std::sync::{Arc, Mutex};
 
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
-    routing::get,
-    Json, Router,
+    routing::{get, patch},
+    Extension, Json, Router,
 };
 use rusqlite::Connection;
 use serde::Deserialize;
 use serde_json::json;
 
-use db::BookingError;
+use db::{BookingError, ChangeError};
 
 pub type Db = Arc<Mutex<Connection>>;
 
 /// Construit l'application sur une connexion déjà ouverte (un fichier, ou la mémoire pour les tests).
 pub fn app(conn: Connection) -> Router {
+    router(conn, Today(None))
+}
+
+/// Comme `app`, avec une date du jour fixée (AAAA-MM-JJ) au lieu de celle du serveur.
+pub fn app_at(conn: Connection, today: &str) -> Router {
+    router(conn, Today(Some(today.to_string())))
+}
+
+#[derive(Clone)]
+struct Today(Option<String>);
+
+fn router(conn: Connection, today: Today) -> Router {
     db::init(&conn).expect("initialisation de la base");
     let state: Db = Arc::new(Mutex::new(conn));
     Router::new()
         .route("/api/show", get(get_show))
         .route("/api/stands", get(get_stands))
         .route("/api/bookings", get(get_bookings).post(post_booking))
+        .route("/api/bookings/{id}", patch(patch_booking))
+        .layer(Extension(today))
         .with_state(state)
-}
-
-pub fn app_at(conn: Connection, _today: &str) -> Router {
-    app(conn)
 }
 
 #[derive(Deserialize)]
 struct NewBooking {
+    stand_id: i64,
+    exhibitor: String,
+}
+
+#[derive(Deserialize)]
+struct StandChange {
     stand_id: i64,
     exhibitor: String,
 }
@@ -82,6 +98,40 @@ async fn post_booking(State(db): State<Db>, Json(body): Json<NewBooking>) -> Res
         Ok(Ok(booking)) => (StatusCode::CREATED, Json(booking)).into_response(),
         Ok(Err(BookingError::UnknownStand)) => error(StatusCode::NOT_FOUND, "Stand inconnu"),
         Ok(Err(BookingError::AlreadyBooked)) => {
+            error(StatusCode::CONFLICT, "Ce stand est déjà réservé")
+        }
+        Err(e) => internal(e),
+    }
+}
+
+async fn patch_booking(
+    State(db): State<Db>,
+    Extension(Today(today)): Extension<Today>,
+    Path(id): Path<i64>,
+    Json(body): Json<StandChange>,
+) -> Response {
+    let result = db::change_stand(
+        &db.lock().unwrap(),
+        id,
+        body.stand_id,
+        body.exhibitor.trim(),
+        today.as_deref(),
+    );
+    match result {
+        Ok(Ok(booking)) => Json(booking).into_response(),
+        Ok(Err(ChangeError::UnknownBooking)) => {
+            error(StatusCode::NOT_FOUND, "Réservation inconnue")
+        }
+        Ok(Err(ChangeError::NotOwner)) => error(
+            StatusCode::FORBIDDEN,
+            "Cette réservation est au nom d'un autre exposant",
+        ),
+        Ok(Err(ChangeError::TooLate)) => error(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "Le changement de stand n'est plus possible à moins de 7 jours de l'ouverture du salon",
+        ),
+        Ok(Err(ChangeError::UnknownStand)) => error(StatusCode::NOT_FOUND, "Stand inconnu"),
+        Ok(Err(ChangeError::AlreadyBooked)) => {
             error(StatusCode::CONFLICT, "Ce stand est déjà réservé")
         }
         Err(e) => internal(e),
