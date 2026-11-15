@@ -46,3 +46,9 @@ make check : VERT
 
 ## 2026-11-15 17:18 · 05 Revue · tour 2/2
 Verdict reviewer : LIVRABLE, 0 bloquant, 5 non bloquants
+
+## 2026-11-15 17:18 · P4 · validation humaine
+Validation humaine (Enzo Olmos) : livrer, motif : revue livrable
+
+## 2026-11-15 17:19 · 06 Livrer · bilan
+itérations B2 : 2 · tours B3 : 2 · escalades : 0 · validations humaines : 2
