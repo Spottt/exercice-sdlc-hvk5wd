@@ -13,7 +13,7 @@ Un critère non couvert ou faux, une règle de la constitution violée, un bug d
 1. `<fichier:ligne>` — <problème> — <correction attendue>
 
 ## Écarts non bloquants
-Style, lisibilité, amélioration possible. Vont dans NOTES.md, ne relancent pas de boucle.
+Style, lisibilité, amélioration possible. Ils vont dans NOTES.md et ne relancent pas de boucle.
 1. `<fichier:ligne>` — <remarque>
 
 ## Constitution

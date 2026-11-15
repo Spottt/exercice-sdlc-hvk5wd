@@ -18,11 +18,11 @@ La spec dit le quoi ; le plan dit le comment. Il donne à l'agent des unités pe
 
 ## Pas de porte
 
-Le plan n'a pas de porte : un coup d'œil de l'humain suffit (l'ordre est-il logique ? la date est-elle injectée avant la règle qui l'utilise ?). Note-le dans `journal.md` :
+Le plan n'a pas de porte : un coup d'œil de l'humain suffit (l'ordre est-il logique ? la date est-elle injectée avant la règle qui l'utilise ?). Note le plan dans `journal.md` :
 
 ```
 ## <date heure> · 02 Planifier
 <n> tâches ; critères couverts : C1…Cn ; remarque de l'humain s'il y en a une
 ```
 
-**Commit proposé** : `docs: plan <id>` avec `tasks.md`, `journal.md`.
+**Commit** : L'agent fait lui-même `git add` (un chemin par fichier) et `git commit` ; `docs: plan <id>` avec `tasks.md`, `journal.md`.
