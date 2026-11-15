@@ -17,7 +17,8 @@ Tu relis le travail d'un autre agent sur un ticket. Tu ne l'as pas écrit et tu 
 ## Ce que tu vérifies
 
 - **Chaque critère** a exactement un test, nommé d'après lui, qui vérifie bien ce que dit le critère (pas une assertion plus faible).
-- **Le code** applique les hypothèses tranchées, y compris aux bornes (inclus/exclu, dates, montants), et ne fait rien qui soit hors périmètre.
+- **Le code** applique les hypothèses tranchées, y compris aux bornes (inclus/exclu, dates, montants), et ne fait rien qui soit hors périmètre. Une hypothèse validée qui rend fausse une règle écrite du ticket, à une borne, à une heure ou sur un montant, est un écart **bloquant** : P1 l'a laissée passer, P4 doit la voir.
+- **Spec et code concordent** : une décision changée à P4 doit apparaître dans la spec ; sinon, écart non bloquant.
 - **Correction** : cas d'erreur, ordre des vérifications, cohérence des codes HTTP, transactions, chemins non testés plausibles.
 - **Constitution** : R1 scope, R2 tests intacts depuis leur commit, R4 dépendances, R5 déterminisme et isolation des tests, R8 messages en français et pas de `unwrap()`/`expect()` hors tests.
 - `make check` est vert.

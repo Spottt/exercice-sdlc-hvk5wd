@@ -20,7 +20,7 @@ Boucle **B1**, 1 tour : l'humain ajoute ses réponses au ticket, on relance `/sd
 
 Écris `spec.md` d'après [`templates/spec.md`](templates/spec.md). Règles :
 
-- **Hypothèses** : chaque point que le ticket laisse ouvert (borne incluse ou exclue, code HTTP, format de date, qui a le droit) devient une décision proposée, numérotée, que l'humain validera. Pas de devinette silencieuse dans le code plus tard.
+- **Hypothèses** : chaque point que le ticket laisse ouvert (borne incluse ou exclue, code HTTP, format de date, qui a le droit) devient une décision proposée, numérotée, que l'humain validera. Une hypothèse qui touche une date, une heure ou un montant donne un exemple chiffré à sa borne ; une date du jour dit dans quel fuseau elle est lue (UTC du serveur, heure locale, fuseau du salon) et ce que ça donne juste après minuit. Pas de devinette silencieuse dans le code plus tard.
 - **Critères** : au format « Étant donné…, quand…, alors… », avec un résultat observable via l'API (route, code HTTP, corps de réponse). Chaque critère donne exactement un test.
 - **Hors périmètre** : toujours écrit, même en une ligne. N'invente pas de besoin absent du ticket.
 - **Classe de risque** : élevée ou normale, avec la raison (voir constitution).

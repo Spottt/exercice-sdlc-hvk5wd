@@ -28,7 +28,7 @@ L'agent qui a écrit le code ne peut pas le juger : son avis valide surtout ses 
 Présente à l'humain le verdict, les écarts et la classe de risque, puis arrête-toi. L'humain lit `revue.md` ; en classe **élevée**, il faut aussi lire le diff (`git diff <base>`). Décision :
 
 - **livrer** : on passe à 06 ;
-- **corriger** : l'humain dit quoi corriger, retour à 04 (si la borne B3 le permet) ;
+- **corriger** : l'humain dit quoi corriger, retour à 04 (si la borne B3 le permet) ; si la correction change une hypothèse, la spec est mise à jour dans le même commit `fix:` ;
 - **reprendre à la main** : l'humain corrige à la main, et le note.
 
 L'humain signe la décision lui-même :
