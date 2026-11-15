@@ -24,7 +24,7 @@ Boucle **B1**, 1 tour : l'humain ajoute ses réponses au ticket, on relance `/sd
 - **Critères** : au format « Étant donné…, quand…, alors… », avec un résultat observable via l'API (route, code HTTP, corps de réponse). Chaque critère donne exactement un test.
 - **Hors périmètre** : toujours écrit, même en une ligne. N'invente pas de besoin absent du ticket.
 - **Classe de risque** : élevée ou normale, avec la raison (voir constitution).
-- **Bloc `files`** : tous les fichiers que les étapes suivantes pourront créer ou modifier, dont un fichier de tests sous `api/tests/`. Tout autre fichier sera refusé par `make check-scope`. Reste minimal. Jamais `sdlc/`, `.claude/`, `Makefile`, `CLAUDE.md`. Une dépendance nouvelle impose `Cargo.toml`/`Cargo.lock` ou `package.json` dans le bloc et une ligne de justification.
+- **Bloc `files`** : tous les fichiers que les étapes suivantes pourront créer ou modifier, dont un fichier de tests sous `api/tests/`. Tout autre fichier sera refusé par `make check-scope`. Reste minimal. Jamais `sdlc/`, `.claude/`, `Makefile`, `CLAUDE.md`. Si les tests auront besoin d'un point d'entrée qui n'existe pas encore (par exemple une date injectée), liste aussi son fichier dans un bloc `socle` : seul fichier hors tests que l'étape 03 pourra toucher. Une dépendance nouvelle impose `Cargo.toml`/`Cargo.lock` ou `package.json` dans le bloc et une ligne de justification.
 
 ## Porte P1 · Spec — humain
 

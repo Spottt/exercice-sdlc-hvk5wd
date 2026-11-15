@@ -26,3 +26,8 @@ api/src/<fichier>.rs
 api/tests/<sujet>.rs
 ```
 <dépendance nouvelle : une ligne de justification, sinon rien>
+
+Socle, seulement si les tests ont besoin d'un point d'entrée qui n'existe pas (par exemple une date injectée) ; fichiers déjà présents dans `files` :
+```socle
+api/src/<fichier>.rs
+```

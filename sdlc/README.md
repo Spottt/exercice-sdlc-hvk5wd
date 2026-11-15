@@ -24,7 +24,7 @@ Une porte est un endroit où le cycle ne continue pas tout seul. Le jugement hum
 | Porte | Après | Qui | Vérifie |
 | --- | --- | --- | --- |
 | P1 · Spec | 01 | Humain | Hypothèses tranchées, hors périmètre écrit, classe de risque déclarée |
-| P2 · Rouge | 03 | `make check-red` | Nouveaux tests compilent et échouent, anciens verts, seuls des tests ont bougé, aucune horloge |
+| P2 · Rouge | 03 | `make check-red` | Nouveaux tests compilent et échouent, anciens verts, seuls des tests et le socle ont bougé, aucune horloge |
 | P3 · Vert | 04 | `make check` | fmt, clippy `-D warnings`, `cargo test`, `npm test`, scope, tests gelés |
 | P4 · Merge | 05 | Humain | Lit `revue.md` (et le diff si risque élevé) ; décide : livrer, corriger, reprendre à la main |
 

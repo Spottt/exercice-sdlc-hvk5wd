@@ -22,6 +22,7 @@ JOURNAL = docs/tickets/$(T)/journal.md
 # Base du ticket : le commit qui a ajouté sa spec ; HEAD tant qu'elle n'est pas commitée
 BASE = $(or $(shell git log --diff-filter=A --format=%H -- $(SPEC) | tail -1),HEAD)
 CHANGED = { git diff --name-only $(BASE); git ls-files --others --exclude-standard; } | sort -u
+SOCLE = awk '/^```/ { f = /^```socle/; next } f && NF { print $$1 }' $(SPEC)
 TESTS_RE = ^api/tests/.+\.rs$$|\.test\.ts$$
 export MSG
 
@@ -56,8 +57,8 @@ check-red:
 
 run-check-red: check-scope
 	@! grep -rnE 'SystemTime::now|Local::now|Utc::now|sleep\(' api/tests || { echo "check-red : horloge ou sleep dans api/tests"; exit 1; }
-	@out=$$($(CHANGED) | grep -v '^docs/tickets/$(T)/' | grep -vE '$(TESTS_RE)'); \
-	test -z "$$out" || { echo "check-red : seuls des tests peuvent bouger à cette étape :"; echo "$$out"; exit 1; }
+	@out=$$($(CHANGED) | grep -v '^docs/tickets/$(T)/' | grep -vE '$(TESTS_RE)' | grep -vxF -f <($(SOCLE))); \
+	test -z "$$out" || { echo "check-red : seuls des tests et le bloc socle de la spec peuvent bouger à cette étape :"; echo "$$out"; exit 1; }
 	@cd api && cargo test --no-run
 	@new=$$($(CHANGED) | grep -E '$(TESTS_RE)'); \
 	test -n "$$new" || { echo "check-red : aucun test nouveau"; exit 1; }; \

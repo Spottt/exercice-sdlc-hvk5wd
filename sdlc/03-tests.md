@@ -8,8 +8,8 @@ Un test qui n'a jamais été rouge ne prouve rien. Cette étape écrit les tests
 ## Consignes
 
 1. **Un test par critère**, nommé d'après lui : `c1_<résumé_du_critère>`. Le corps suit le schéma « étant donné / quand / alors » du critère, rien de plus.
-2. Écris uniquement dans les fichiers de tests listés dans le bloc `files`. Ne touche ni à `api/src/` ni à `web/src/` hors `*.test.ts`. N'écris aucune implémentation.
-3. **Teste à travers l'API HTTP**, dans le style de `api/tests/api.rs` (helpers `app()` et `call()`, `oneshot` sur le routeur). Ainsi les tests compilent sans le nouveau code. Si un test a besoin d'un point d'entrée qui n'existe pas encore (par exemple `app_at(conn, today)` pour injecter la date), il ne compilera pas : arrête-toi et demande à l'humain d'arbitrer, n'écris pas ce point d'entrée toi-même.
+2. Écris uniquement dans les fichiers de tests listés dans le bloc `files`, plus le socle décrit au point 3. N'écris aucune implémentation.
+3. **Teste à travers l'API HTTP**, dans le style de `api/tests/api.rs` (helpers `app()` et `call()`, `oneshot` sur le routeur). Ainsi les tests compilent sans le nouveau code. Si un test a besoin d'un point d'entrée qui n'existe pas encore (par exemple `app_at(conn, today)` pour injecter la date), écris d'abord un **socle** : la signature seule, qui délègue au code existant sans changer aucun comportement (`app_at` appelle `app` et ignore la date). Le socle ne va que dans un fichier du bloc `socle` de la spec ; si la spec n'en a pas, ajoute ce bloc, avec un fichier déjà présent dans `files`, et signale-le dans le journal. La porte vérifie qu'il ne fait rien : anciens tests verts, nouveaux tous rouges.
 4. **Déterminisme** (constitution R5) :
    - date du jour injectée, jamais lue sur l'horloge : pas de `SystemTime::now`, `Local::now`, `Utc::now` ;
    - base SQLite en mémoire neuve par test ; aucun test ne dépend d'un autre ni de l'ordre ;
@@ -18,7 +18,7 @@ Un test qui n'a jamais été rouge ne prouve rien. Cette étape écrit les tests
 
 ## Porte P2 · Rouge — `make check-red`
 
-Lance `make check-red`. La cible vérifie, dans l'ordre : aucune horloge ni `sleep` dans `api/tests/` ; seuls des tests (et `docs/tickets/<id>/`) ont bougé ; tout compile ; les anciens tests passent ; **chaque** nouveau test échoue.
+Lance `make check-red`. La cible vérifie, dans l'ordre : aucune horloge ni `sleep` dans `api/tests/` ; seuls des tests, le socle et `docs/tickets/<id>/` ont bougé ; tout compile ; les anciens tests passent ; **chaque** nouveau test échoue.
 
 La cible ajoute elle-même son résultat au journal, une ligne par test ; tu n'as rien à y copier.
 
