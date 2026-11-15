@@ -29,7 +29,7 @@ export MSG
 # $(call journaliser,titre,corps) ajoute une entrée horodatée au journal du ticket, s'il existe
 journaliser = if [ -n "$(T)" ] && [ -d docs/tickets/$(T) ]; then printf '\n\#\# %s · %s\n%s\n' "$$(date '+%Y-%m-%d %H:%M')" "$(1)" "$(2)" >> $(JOURNAL); fi
 
-# P3 · Vert, journalisée ; pendant 04, numérote l'itération de la boucle B2 (remise à zéro par une revue)
+# P3 · Vert ; journalisée seulement pendant 04, où elle numérote l'itération de B2 (remise à zéro par une revue)
 check:
 	@log=$$(mktemp); $(MAKE) -s --no-print-directory -f $(firstword $(MAKEFILE_LIST)) run-check 2>&1 | tee $$log; st=$${PIPESTATUS[0]}; \
 	lab=$$(grep '^== ' $$log | tail -1 | cut -c4-); body="make check : VERT"; \
@@ -37,8 +37,8 @@ check:
 	if [ "$(STEP)" = implementer ]; then \
 	  k=$$(awk '/^## .*· 05 Revue/ { n = 0 } /^## .*· itération/ { n++ } END { print n + 1 }' $(JOURNAL) 2>/dev/null); k=$${k:-1}; \
 	  titre="04 Implémenter · itération $$k/3"; [ "$$k" -le 3 ] || echo "B2 : borne de 3 itérations dépassée, escalade vers l'humain"; \
-	else titre="$(or $(STEP),hors cycle) · make check"; fi; \
-	$(call journaliser,$$titre,$$body); rm -f $$log; exit $$st
+	  $(call journaliser,$$titre,$$body); \
+	fi; rm -f $$log; exit $$st
 
 run-check: check-scope
 	@echo "== fmt" && cd api && cargo fmt --check
