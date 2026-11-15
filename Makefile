@@ -21,7 +21,7 @@ SPEC = docs/tickets/$(T)/spec.md
 JOURNAL = docs/tickets/$(T)/journal.md
 # Base du ticket : le commit qui a ajouté sa spec ; HEAD tant qu'elle n'est pas commitée
 BASE = $(or $(shell git log --diff-filter=A --format=%H -- $(SPEC) | tail -1),HEAD)
-CHANGED = { git diff --name-only $(BASE); git ls-files --others --exclude-standard; } | sort -u
+CHANGED = { git diff --name-only $(BASE); git ls-files --others --exclude-standard; } | sort -u | grep -vE '^(sdlc/|\.claude/|Makefile$$|CLAUDE\.md$$)'
 SOCLE = awk '/^```/ { f = /^```socle/; next } f && NF { print $$1 }' $(SPEC)
 TESTS_RE = ^api/tests/.+\.rs$$|\.test\.ts$$
 export MSG
