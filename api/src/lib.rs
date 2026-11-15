@@ -30,6 +30,10 @@ pub fn app(conn: Connection) -> Router {
         .with_state(state)
 }
 
+pub fn app_at(conn: Connection, _today: &str) -> Router {
+    app(conn)
+}
+
 #[derive(Deserialize)]
 struct NewBooking {
     stand_id: i64,
