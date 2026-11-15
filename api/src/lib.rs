@@ -110,8 +110,11 @@ async fn patch_booking(
     Path(id): Path<i64>,
     Json(body): Json<StandChange>,
 ) -> Response {
+    let Ok(conn) = db.lock() else {
+        return error(StatusCode::INTERNAL_SERVER_ERROR, "Erreur interne");
+    };
     let result = db::change_stand(
-        &db.lock().unwrap(),
+        &conn,
         id,
         body.stand_id,
         body.exhibitor.trim(),
