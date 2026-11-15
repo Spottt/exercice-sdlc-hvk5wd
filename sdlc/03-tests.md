@@ -18,7 +18,7 @@ Un test qui n'a jamais été rouge ne prouve rien. Cette étape écrit les tests
 
 ## Porte P2 · Rouge — `make check-red`
 
-Lance `make check-red`. La cible vérifie, dans l'ordre : aucune horloge ni `sleep` dans `api/tests/` ; seuls des tests, le socle et `docs/tickets/<id>/` ont bougé ; tout compile ; les anciens tests passent ; **chaque** nouveau test échoue.
+Lance `make check-red`. La cible vérifie, dans l'ordre : aucune horloge ni `sleep` dans `api/tests/` ; seuls des tests, le socle et `docs/tickets/<id>/` ont bougé ; tout compile, est formaté (`cargo fmt --check`) et passe `clippy -D warnings` ; les anciens tests passent ; **chaque** nouveau test échoue.
 
 La cible ajoute elle-même son résultat au journal, une ligne par test ; tu n'as rien à y copier.
 

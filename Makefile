@@ -60,6 +60,8 @@ run-check-red: check-scope
 	@out=$$($(CHANGED) | grep -v '^docs/tickets/$(T)/' | grep -vE '$(TESTS_RE)' | grep -vxF -f <($(SOCLE))); \
 	test -z "$$out" || { echo "check-red : seuls des tests et le bloc socle de la spec peuvent bouger à cette étape :"; echo "$$out"; exit 1; }
 	@cd api && cargo test --no-run
+	@cd api && cargo fmt --check
+	@cd api && cargo clippy --all-targets -- -D warnings
 	@new=$$($(CHANGED) | grep -E '$(TESTS_RE)'); \
 	test -n "$$new" || { echo "check-red : aucun test nouveau"; exit 1; }; \
 	old=""; for f in api/tests/*.rs; do echo "$$new" | grep -qxF "$$f" || old="$$old --test $$(basename $$f .rs)"; done; \
