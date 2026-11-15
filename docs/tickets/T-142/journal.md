@@ -13,3 +13,6 @@ Trace horodatée du cycle, la plus récente en bas. Presque tout s'y écrit sans
 
 ## 2026-11-15 17:14 · P1 · validation humaine
 Validation humaine (Enzo Olmos) : hypothèses 1 à 8 validées
+
+## 2026-11-15 17:14 · 02 Planifier
+3 tâches ; critères couverts : C1…C8
