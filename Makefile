@@ -35,7 +35,7 @@ check:
 	lab=$$(grep '^== ' $$log | tail -1 | cut -c4-); body="make check : VERT"; \
 	[ $$st = 0 ] || body="make check : ROUGE à l'étape $${lab:-scope}"$$'\n'"$$(grep -E -A5 'error|FAILED|panicked|warning:|check :|check-scope :' $$log | head -12)"; \
 	if [ "$(STEP)" = implementer ]; then \
-	  k=$$(awk '/· 05 Revue/ { n = 0 } /· itération/ { n++ } END { print n + 1 }' $(JOURNAL) 2>/dev/null); k=$${k:-1}; \
+	  k=$$(awk '/^## .*· 05 Revue/ { n = 0 } /^## .*· itération/ { n++ } END { print n + 1 }' $(JOURNAL) 2>/dev/null); k=$${k:-1}; \
 	  titre="04 Implémenter · itération $$k/3"; [ "$$k" -le 3 ] || echo "B2 : borne de 3 itérations dépassée, escalade vers l'humain"; \
 	else titre="$(or $(STEP),hors cycle) · make check"; fi; \
 	$(call journaliser,$$titre,$$body); rm -f $$log; exit $$st
@@ -92,5 +92,5 @@ valider:
 
 # Totaux du cycle, ajoutés au journal à l'étape 06
 bilan:
-	@b="itérations B2 : $$(grep -c '· itération' $(JOURNAL)) · tours B3 : $$(grep -c '· 05 Revue · tour' $(JOURNAL)) · escalades : $$(grep -c '· escalade ·' $(JOURNAL)) · validations humaines : $$(grep -c '^Validation humaine' $(JOURNAL))"; \
+	@b="itérations B2 : $$(grep -c '^## .*· itération' $(JOURNAL)) · tours B3 : $$(grep -c '^## .*· 05 Revue · tour' $(JOURNAL)) · escalades : $$(grep -c '^## .*· escalade ·' $(JOURNAL)) · validations humaines : $$(grep -c '^Validation humaine' $(JOURNAL))"; \
 	$(call journaliser,06 Livrer · bilan,$$b); echo "$$b"
